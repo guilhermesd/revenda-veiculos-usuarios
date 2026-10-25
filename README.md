@@ -2,6 +2,10 @@
 
 API .NET 10 independente para cadastro de compradores e emissão de JWT. Ela usa MongoDB próprio e nunca compartilha collections com a API de Vendas.
 
+## Papéis
+
+`ADM` cadastra e edita veículos na API de Vendas. `COMPRADOR` lista veículos autenticado e inicia compras. Em `POST /api/v1/users`, `role` é opcional e assume `COMPRADOR`; os únicos valores aceitos são `ADM` e `COMPRADOR`. O JWT inclui o claim `role` usado pela API de Vendas.
+
 ## Endpoints
 
 - `POST /api/v1/users`: cadastra nome, CPF, e-mail e senha.
@@ -15,6 +19,19 @@ As senhas usam BCrypt; CPF e e-mail possuem índices únicos no MongoDB.
 ```powershell
 dotnet test Fiap.RevendaVeiculos.Usuarios.slnx
 ```
+
+## Teste integrado com Vendas
+
+O teste de integração de papéis fica no repositório de Vendas, pois valida a comunicação entre as duas APIs. Antes de executá-lo, os quatro serviços devem estar em execução a partir da raiz do repositório de Vendas:
+
+```powershell
+docker compose -f compose.yaml -f compose.local-ports.yaml up -d --build
+dotnet test Fiap.RevendaVeiculos.slnx --filter "Category=Docker"
+```
+
+Nesse modo, a API de Usuários responde em `http://localhost:8181` e a API de Vendas em `http://localhost:8180`. O teste valida que `ADM` pode cadastrar veículos e que `COMPRADOR` não pode cadastrar, mas pode iniciar compras. Se o Compose não estiver ativo, o teste informa o comando necessário para iniciá-lo.
+
+O ciclo também valida cadastro/login dos dois papéis, JWT, consulta/edição/listagens de veículos e os webhooks `PAID` e `CANCELED` na API de Vendas.
 
 ## Docker
 
