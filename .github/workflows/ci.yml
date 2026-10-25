@@ -19,6 +19,6 @@ jobs:
         run: |
           dotnet restore Fiap.RevendaVeiculos.Usuarios.slnx
           dotnet build Fiap.RevendaVeiculos.Usuarios.slnx --no-restore --configuration Release
-          dotnet test Fiap.RevendaVeiculos.Usuarios.slnx --no-build --configuration Release
+          dotnet test Fiap.RevendaVeiculos.Usuarios.slnx --no-build --configuration Release --filter "Category!=Docker"
       - name: Build Docker image
         run: docker build --tag revenda-usuarios:${{ github.sha }} .

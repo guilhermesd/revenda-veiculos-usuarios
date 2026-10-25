@@ -6,7 +6,10 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="..\..\src\Fiap.RevendaVeiculos.Usuarios.Domain\Fiap.RevendaVeiculos.Usuarios.Domain.csproj" /></ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Fiap.RevendaVeiculos.Usuarios.Domain\Fiap.RevendaVeiculos.Usuarios.Domain.csproj" />
+    <ProjectReference Include="..\..\src\Fiap.RevendaVeiculos.Usuarios.Application\Fiap.RevendaVeiculos.Usuarios.Application.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
