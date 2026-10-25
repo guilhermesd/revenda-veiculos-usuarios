@@ -1,0 +1,24 @@
+name: ci-usuarios
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Restore, build and test
+        run: |
+          dotnet restore Fiap.RevendaVeiculos.Usuarios.slnx
+          dotnet build Fiap.RevendaVeiculos.Usuarios.slnx --no-restore --configuration Release
+          dotnet test Fiap.RevendaVeiculos.Usuarios.slnx --no-build --configuration Release
+      - name: Build Docker image
+        run: docker build --tag revenda-usuarios:${{ github.sha }} .

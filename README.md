@@ -25,9 +25,11 @@ Este repositório é dono de seu `compose.yaml`, que declara `api-usuarios` e `m
 - [Design system da API de Usuarios](docs/api-design-system.md): convenções, contratos de cadastro/login e emissão de JWT.
 - [Modelo de dados MongoDB de Usuarios](docs/database-model.md): coleção, campos, índices exclusivos e proteção de senha.
 
-## Etapas do CI/CD integrado
+## CI próprio e integração
 
-O workflow central está no repositório de Vendas, em `.github/workflows/deploy.yml`, porque é ele que orquestra os quatro serviços. Ele é ativado por `push` na branch `main` do repositório de Vendas ou manualmente em **Actions > ci-cd-simulado > Run workflow**.
+O workflow próprio [ci.yml](.github/workflows/ci.yml) é acionado em cada `push` ou Pull Request para `main`, além de poder ser executado manualmente. Ele restaura dependências, compila em Release, executa os testes desta solução e constrói a imagem Docker de Usuários.
+
+O workflow central permanece no repositório de Vendas, em `.github/workflows/deploy.yml`, porque é ele que orquestra os quatro serviços. Ele é ativado por `push` na branch `main` do repositório de Vendas ou manualmente em **Actions > ci-cd-simulado > Run workflow**.
 
 1. Faz checkout deste repositório junto ao de Vendas.
 2. Executa `dotnet test` para as duas soluções.
