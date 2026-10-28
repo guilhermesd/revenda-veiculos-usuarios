@@ -32,7 +32,20 @@ public sealed class MongoUserRepository(IMongoDatabase db):IUserRepository
 {
     private readonly IMongoCollection<UserDocument> _users=db.GetCollection<UserDocument>("users");
     public Task AddAsync(User user,CancellationToken ct)=>_users.InsertOneAsync(UserDocument.From(user),cancellationToken:ct);
+    public async Task<User?> GetByIdAsync(string id,CancellationToken ct)=>(await _users.Find(x=>x.Id==id).FirstOrDefaultAsync(ct))?.ToDomain();
     public async Task<User?> GetByEmailAsync(string email,CancellationToken ct)=>(await _users.Find(x=>x.Email==email).FirstOrDefaultAsync(ct))?.ToDomain();
+    public async Task<User?> GetByCpfAsync(string cpf,CancellationToken ct)=>(await _users.Find(x=>x.Cpf==cpf).FirstOrDefaultAsync(ct))?.ToDomain();
+    public async Task<IReadOnlyList<User>> ListAsync(CancellationToken ct)=>(await _users.Find(_=>true).SortBy(x=>x.Name).ToListAsync(ct)).Select(x=>x.ToDomain()).ToList();
+    public async Task ReplaceAsync(User user,CancellationToken ct)
+    {
+        var result=await _users.ReplaceOneAsync(x=>x.Id==user.Id,UserDocument.From(user),cancellationToken:ct);
+        if(result.MatchedCount==0)throw new InvalidOperationException("User not found while updating.");
+    }
+    public async Task DeleteAsync(string id,CancellationToken ct)
+    {
+        var result=await _users.DeleteOneAsync(x=>x.Id==id,ct);
+        if(result.DeletedCount==0)throw new InvalidOperationException("User not found while deleting.");
+    }
 }
 public sealed class MongoInitializer(IMongoDatabase db)
 {

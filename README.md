@@ -8,7 +8,11 @@ API .NET 10 independente para cadastro de compradores e emissão de JWT. Ela usa
 
 ## Endpoints
 
-- `POST /api/v1/users`: cadastra nome, CPF, e-mail e senha.
+- `POST /api/v1/users`: cadastra nome, CPF, e-mail, senha e papel.
+- `GET /api/v1/users`: lista os usuários cadastrados.
+- `GET /api/v1/users/{id}`: consulta um usuário.
+- `PUT /api/v1/users/{id}`: atualiza nome, CPF, e-mail, papel e, opcionalmente, senha.
+- `DELETE /api/v1/users/{id}`: exclui um usuário.
 - `POST /api/v1/auth/login`: retorna JWT para consumo da API de Vendas.
 - `GET /health/live` e `/swagger`.
 
@@ -18,6 +22,13 @@ As senhas usam BCrypt; CPF e e-mail possuem índices únicos no MongoDB.
 
 ```powershell
 dotnet test Fiap.RevendaVeiculos.Usuarios.slnx
+```
+
+Os testes unitários cobrem regras de cadastro, autenticação, alteração, conflito de e-mail e exclusão. O teste de integração, identificado pela categoria `Docker`, percorre o CRUD completo e a autenticação usando a API e MongoDB reais:
+
+```powershell
+docker compose -f compose.yaml -f compose.local-ports.yaml up -d --build
+dotnet test Fiap.RevendaVeiculos.Usuarios.slnx --filter "Category=Docker"
 ```
 
 ## Teste integrado com Vendas

@@ -10,19 +10,33 @@ public sealed class UserApiEndpointIntegrationTests
     private static readonly Uri BaseAddress = new(Environment.GetEnvironmentVariable("USERS_API_URL") ?? "http://localhost:8181");
 
     [Fact]
-    public async Task All_users_api_endpoints_register_login_and_health_checks_work()
+    public async Task All_users_api_endpoints_complete_crud_and_authentication_work()
     {
         using var api = new HttpClient { BaseAddress = BaseAddress };
         await EnsureApiIsRunning(api);
         Assert.Equal(HttpStatusCode.OK, (await api.GetAsync("/health/live")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await api.GetAsync("/health/ready")).StatusCode);
         var suffix = Guid.NewGuid().ToString("N")[..10];
-        var register = await api.PostAsJsonAsync("/api/v1/users", new { name = "Comprador", cpf = Random.Shared.NextInt64(10_000_000_000L, 99_999_999_999L).ToString(), email = $"user{suffix}@example.com", password = "Senha@123", role = "COMPRADOR" });
+        var cpf = Random.Shared.NextInt64(10_000_000_000L, 99_999_999_999L).ToString();
+        var email = $"user{suffix}@example.com";
+        var register = await api.PostAsJsonAsync("/api/v1/users", new { name = "Comprador", cpf, email, password = "Senha@123", role = "COMPRADOR" });
         Assert.Equal(HttpStatusCode.Created, register.StatusCode);
-        var login = await api.PostAsJsonAsync("/api/v1/auth/login", new { email = $"user{suffix}@example.com", password = "Senha@123" });
+        var created = await register.Content.ReadFromJsonAsync<UserResponse>();
+        Assert.False(string.IsNullOrWhiteSpace(created?.Id));
+        Assert.Equal(HttpStatusCode.OK, (await api.GetAsync($"/api/v1/users/{created!.Id}")).StatusCode);
+        var list = await api.GetFromJsonAsync<List<UserResponse>>("/api/v1/users");
+        Assert.Contains(list!, user => user.Id == created.Id);
+        var updatedEmail = $"updated{suffix}@example.com";
+        var update = await api.PutAsJsonAsync($"/api/v1/users/{created.Id}", new { name = "Comprador Atualizado", cpf, email = updatedEmail, password = "NovaSenha@123", role = "ADM" });
+        Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        var updated = await update.Content.ReadFromJsonAsync<UserResponse>();
+        Assert.Equal("ADM", updated?.Role);
+        var login = await api.PostAsJsonAsync("/api/v1/auth/login", new { email = updatedEmail, password = "NovaSenha@123" });
         Assert.Equal(HttpStatusCode.OK, login.StatusCode);
         var token = await login.Content.ReadFromJsonAsync<LoginResponse>();
         Assert.False(string.IsNullOrWhiteSpace(token?.AccessToken));
+        Assert.Equal(HttpStatusCode.NoContent, (await api.DeleteAsync($"/api/v1/users/{created.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await api.GetAsync($"/api/v1/users/{created.Id}")).StatusCode);
     }
 
     private static async Task EnsureApiIsRunning(HttpClient api)
@@ -31,4 +45,5 @@ public sealed class UserApiEndpointIntegrationTests
         throw new XunitException("API de Usuários indisponível. Inicie: docker compose -f compose.yaml -f compose.local-ports.yaml up -d --build na raiz de Vendas.");
     }
     private sealed record LoginResponse(string AccessToken);
+    private sealed record UserResponse(string Id, string Name, string Cpf, string Email, string Role);
 }

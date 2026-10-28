@@ -23,7 +23,11 @@ flowchart LR
 
 | Método e rota | Corpo | Resultado |
 | --- | --- | --- |
-| `POST /api/v1/users` | nome, CPF, e-mail e senha | `201 Created` |
+| `POST /api/v1/users` | nome, CPF, e-mail, senha e papel | `201 Created` |
+| `GET /api/v1/users` | - | `200 OK` com a lista de usuários |
+| `GET /api/v1/users/{id}` | - | `200 OK` com o usuário |
+| `PUT /api/v1/users/{id}` | nome, CPF, e-mail, papel e senha opcional | `200 OK` |
+| `DELETE /api/v1/users/{id}` | - | `204 No Content` |
 | `POST /api/v1/auth/login` | e-mail e senha | `200 OK` com JWT |
 
 ### Cadastro
